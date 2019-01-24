@@ -1,0 +1,49 @@
+language: cpp
+
+dist: xenial
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - clang
+  - gcc
+
+#env:
+#  - ZEAL_PORTABLE_BUILD="OFF"
+#  - ZEAL_PORTABLE_BUILD="ON"
+
+addons:
+  apt:
+    packages:
+      - cmake
+      - extra-cmake-modules
+      - qt5-default
+      - libqt5webkit5-dev
+      - libqt5x11extras5-dev
+      - libarchive-dev
+      - libsqlite3-dev
+      - libxcb-keysyms1-dev
+      - ninja-build
+  homebrew:
+    packages:
+      - cmake
+      - qt
+      - libarchive
+      - sqlite3
+      - curl
+      - ninja
+
+script:
+  - mkdir build && cd build
+  - if [ ${TRAVIS_OS_NAME} == "osx" ] ; then
+      curl -o ${TRAVIS_BUILD_DIR}/qtwebkit.tar.gz https://bintray.com/jgoldfar/BlogPostSources/download_file?file_path=qtwebkit-4ad2c91b6d7a6d67e48f6b0252b33eb1d3a00135.x86_64-darwin.tar.gz -L ;
+      tar xvz -f ${TRAVIS_BUILD_DIR}/qtwebkit.tar.gz -C ${TRAVIS_BUILD_DIR} ;
+      cmake -G Ninja -DCMAKE_MAKE_PROGRAM=$(which ninja) -DZEAL_PORTABLE_BUILD="${ZEAL_PORTABLE_BUILD}" -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/ -DQt5WebKit_DIR=${TRAVIS_BUILD_DIR}/usr/lib/cmake/Qt5WebKit -DQt5WebKitWidgets_DIR=${TRAVIS_BUILD_DIR}/usr/lib/cmake/Qt5WebKitWidgets/ -DLibArchive_LIBRARY=/usr/local/opt/libarchive/lib/libarchive.dylib -DLibArchive_INCLUDE_DIR=/usr/local/opt/libarchive/include/ -DSQLite_INCLUDE_DIR=/usr/local/opt/sqlite3/include/ -DSQLite_LIBRARY=/usr/local/opt/sqlite3/lib/libsqlite3.dylib .. ;
+    fi
+  - if [ ${TRAVIS_OS_NAME} == "linux" ] ; then
+      cmake -G Ninja -DCMAKE_MAKE_PROGRAM=$(which ninja) -DZEAL_PORTABLE_BUILD="${ZEAL_PORTABLE_BUILD}" .. ;
+    fi
+  - cd ${TRAVIS_BUILD_DIR}
+  - cmake --build build
